@@ -66,8 +66,22 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                    plotlyOutput("calendar", height="400px")
                  )
                )
+    ),
+    tabPanel("Boxplots",
+             # Sidebar choosing variables, labels and colour
+             sidebarLayout(
+               sidebarPanel(
+                 dateInput("from", "From:", value = ymd(min(elec$date))),
+                 dateInput("to", "To:", value = ymd(max(elec$date))),
+                 selectInput('x', "X", realvars, realvars[1]),
+               ),
+               
+               # Show the scatterplot, with a fixed height
+               mainPanel(
+                 plotlyOutput("calendar", height="400px")
+               )
+             )
     )
-  )
 )
 
 server <- function(input, output) {
