@@ -27,6 +27,7 @@ elec <- read_csv("data/di.csv", skip=1,
                  col_types = "ccddddddddddddddddddddddddddddddddddddddddddddddddccccc")
 load("data/temp.rda")
 
+# Wrangle data
 vic_holidays <- holiday_aus(2017:2019, state = "VIC")
 elec <- elec %>% filter(id == 300)
 elec <- elec %>%
@@ -35,17 +36,34 @@ elec <- elec %>%
   gather(halfhour, kwh, d1:d48) %>%
   mutate(halfhour = as.numeric(sub("d", "", halfhour))/2) %>%
   arrange(date, halfhour) %>%
-  mutate(wday = wday(date, label = TRUE, abbr = TRUE,
-                     week_start = 1),
-         month = month(date, label = TRUE, abbr = TRUE),
-         year = year(date)) %>%
   mutate(dt = ymd_hm(glue("{date} 12:00"),
                      tz = "Australia/Melbourne") +
-           minutes(60*halfhour)) %>% 
+           minutes(60*halfhour)) 
+
+# Create a daily summary
+elec_dly <- elec %>% 
+  group_by(date) %>%
+  summarise(kwh = sum(kwh)) %>%
+  mutate(wday = wday(date, label = TRUE, abbr = TRUE,
+                   week_start = 1),
+       month = month(date, label = TRUE, abbr = TRUE),
+       year = year(date)) %>%
   mutate(work = ifelse(wday %in% c("Mon", "Tue", "Wed", "Thu", "Fri"), "workday", "holiday")) %>%
   mutate(work = ifelse(date %in% vic_holidays$date, "holiday", work)) %>%
   left_join(maxtemp) 
 
+# Add additional variables to day/time data
+elec <- elec %>%
+  mutate(wday = wday(date, label = TRUE, abbr = TRUE,
+                     week_start = 1),
+         month = month(date, label = TRUE, abbr = TRUE),
+         year = year(date)) %>%
+  mutate(work = ifelse(wday %in% c("Mon", "Tue", "Wed", "Thu", "Fri"), "workday", "holiday")) %>%
+  mutate(work = ifelse(date %in% vic_holidays$date, "holiday", work)) %>%
+  left_join(maxtemp) 
+
+# Set up menu for X variable of boxplot
+catvars <- c("wday", "month", "work")
 
 # Define UI for application
 ui <- fluidPage(theme = shinytheme("flatly"),
@@ -63,7 +81,7 @@ ui <- fluidPage(theme = shinytheme("flatly"),
 
                  # Show the scatterplot, with a fixed height
                  mainPanel(
-                   plotlyOutput("calendar", height="400px")
+                   plotOutput("calendar", height="600px")
                  )
                )
     ),
@@ -73,32 +91,43 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                sidebarPanel(
                  dateInput("from", "From:", value = ymd(min(elec$date))),
                  dateInput("to", "To:", value = ymd(max(elec$date))),
-                 selectInput('x', "X", realvars, realvars[1]),
+                 selectInput('x', "X:", catvars, catvars[1])
                ),
                
                # Show the scatterplot, with a fixed height
                mainPanel(
-                 plotlyOutput("calendar", height="400px")
+                 plotlyOutput("boxplots", height="400px")
                )
              )
     )
 )
+)
 
 server <- function(input, output) {
 
-  # Make the interactive scatterplot
-  output$calendar <- renderPlotly({
+  # Make the calendar plot
+  output$calendar <- renderPlot({
     # Set up the calendar plot, for time perid provided,
     calendar_df <- elec %>%
       filter(date < input$to, date >= input$from) %>%
       frame_calendar(x = halfhour, y = kwh, date = date, ncol = 4) 
     p <- calendar_df %>%
-      group_by(date) %>%
-      plot_ly(x = ~.halfhour, y = ~.kwh) %>%
-      add_lines(text = ~ paste("KWH: ", kwh, "<br> Time: ", halfhour))
+      ggplot(aes(x = .halfhour, y = .kwh, group = date, colour=Max_temperature)) +
+      geom_line() +
+      scale_colour_viridis_c("temperature", option="inferno", direction=-1) +
+      theme(legend.position = "bottom")
     prettify(p)
   })
-
+  
+  # Make the boxplot
+  output$boxplots <- renderPlotly({
+    # Set up the calendar plot, for time perid provided,
+    p <- elec_dly %>%
+      filter(year(date) == 2018) %>%
+      ggplot(aes_string(x=input$x, y="kwh")) + geom_boxplot()
+    ggplotly(p)
+  })
+  
 }
 
 # Run the application
