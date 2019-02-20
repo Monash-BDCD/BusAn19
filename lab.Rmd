@@ -13,6 +13,15 @@ knitr::opts_chunk$set(
   error = FALSE)
 ```
 
+## Links to reading
+
+https://compare.energy.vic.gov.au
+
+http://www.smartmeters.vic.gov.au/#
+
+[https://www.computerworld.com](https://www.computerworld.com/article/2497143/business-intelligence/business-intelligence-beginner-s-guide-to-r-introduction.html)
+
+[https://github.com/Monash-BDCD/energy](https://github.com/Monash-BDCD/energy)
 
 ## Exercise 1: Background work
 
