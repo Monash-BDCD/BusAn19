@@ -1,12 +1,18 @@
 ---
-title: "BDCD Business Analytics Lab exercise"
-author: "Prof Di Cook, with Steph Kobakian, Stuart Lee, Nick Spyrison"
+title: "BDCD Business Analytics Lab Exercise"
+author: "Prof Di Cook, Steph Kobakian, Stuart Lee, Nick Spyrison"
 date: "Econometrics & Bus Stat, Monash, Clayton campus, 22/2/2019"
 output:
-  tufte::tufte_html: default
   tufte::tufte_handout:
     citation_package: natbib
     latex_engine: xelatex
+  tufte::tufte_book:
+    citation_package: natbib
+    latex_engine: xelatex
+  tufte::tufte_html: default
+bibliography: skeleton.bib
+link-citations: yes
+always_allow_html: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -17,59 +23,77 @@ knitr::opts_chunk$set(
   error = FALSE)
 ```
 
-## Motivation
+## Melbourne 2050
 
-Be energy-wise, for a greener future. Climate change is consistently in the news. The consequences for Melbourne are more extreme high temperatures and drought. Individuals can play a big role in mitigating the extremes of the future, if they know how their actions contribute to the world as a whole. All of Melbourne households now have smart meters, which report the energy use every 30 minutes. 
+
+*What do you think Melbourne will be like in 2050? Can you imagine what your life will be like, if you are still living here? What will be different, what will be the same?*
+
+
+\begin{marginfigure}
+\includegraphics[width=5cm]{images/melbourne2050.png}
+\end{marginfigure}
+
+I imagine a city where people have control of data about them. They can download this data, and make plots to learn about their life, and what they might do to improve it. 
+
+We are going to do this with one data set that we currently have access to, your household energy use. 
+Our goal is to be energy-wise, for a greener future. Climate change is consistently in the news. The consequences for Melbourne are more extreme high temperatures and drought. Individuals can play a big role in mitigating the extremes of the future, if they know how their actions contribute to the world as a whole. All of Melbourne households now have smart meters, which report the energy use every 30 minutes. 
+
+Maybe in the future Melbourne City will run competitions with fun prizes for the most energy efficient households, or most improved household!
+
+\begin{marginfigure}
+\includegraphics[width=5cm]{images/Monash-Green.jpg}
+\end{marginfigure}
 
 ## Task
 
-Business analytics involves mathematics, computing and data. This lab exercise has a little of both. For the coding part, you will want to pretend you are a master cook, fashion designer, computer repairer or motor mechanic: copy, pull apart and put together again. 
+<!--Business analytics involves mathematics, computing and data. This lab exercise has a little of both. For the coding part, you will want to pretend you are a master cook, fashion designer, computer repairer or motor mechanic: copy, pull apart and put together again. -->
 
-We will show you how to download the smart meter data for your household, wrangle it into shape, and then how to make plots to explore household energy use. What times of day does the household use the most energy, or time of year? Is it related to the weather, with air conditioner or heater usage, or special events, like washing and drying clothes the night before a holiday trip, or dinner parties with friends. We will compare the usage across different households. All the tools used are open source software that will be available to you into the future.
+Working with the smart meter data for Professor Di's household, we wrangle it into shape, and make plots to explore household energy use. We'll try to answer questions like: What times of day does the household use the most energy, or time of year? Is it related to the weather, with air conditioner or heater usage, or special events, like washing and drying clothes the night before a holiday trip, or dinner parties with friends. Then we will see if Professor Di is an energy hog.  
+
+All the tools used are open source software that will be available to you into the future.
 
 ## Getting started
 
-### Reading
+*1. Web research*
 
 Point your web browser to this site: https://compare.energy.vic.gov.au. How can you earn $50 from your energy data?
 
+\begin{marginfigure}
+\includegraphics[width=5cm]{images/energy_compare.png}
+\end{marginfigure}
+
 What's a smart meter? Take a look at the web site http://www.smartmeters.vic.gov.au/# How many smart meters have been installed across Victoria?
 
-### Get materials
+*2. Get materials*
 
 Materials for the workshop can be downloaded from [https://github.com/Monash-BDCD/energy](https://github.com/Monash-BDCD/energy). It will download and unzip onto your computer with the name "energy-master", by default. **Change it to "energy".**
 
 There are several files that will download:
 
-- ```lab.Rmd``` (This is an Rmarkdown file, that has code and explanations, to compile into a document.)
-- ```lab.html``` (This has the instructions for you to follow.)
+- ```lab.Rmd``` (This is an Rmarkdown file, a special plain text document that contains code and explanations, and can compiled compile into a Word, html or pdf document.)
+- ```lab.html``` (This has compiled document.)
 - ```data``` is a directory containing some sample energy files
-- ```energy_app``` contains files to make a web app
-- ```energy.Rproj`` An R project, clicking on this will open RStudio (and R) on your computer.
+- ```energy_app``` a directory that contains files to get you started on making a web app
+- ```energy.Rproj``` An R project, clicking on this will open RStudio (and R) on your computer.
 
-### About the data
+*3. About the data*
 
 Data collected by downloading Di's (and friend of hers) electricity usage data as recorded by the household smart meter. Details on how to do this are (**THIS IS ONLY IF YOU WANT TO COLLECT YOUR OWN HOUSEHOLD'S DATA**): 
 
 - [Find your distributor](https://www.energy.vic.gov.au/electricity/electricity-distributors) <br>
 - Create an account, using your meter number which you can find on a current bill
 
+\begin{marginfigure}
+\includegraphics[width=5cm]{images/energy_distributors.png}
+\end{marginfigure}
+
 Maybe after this workshop, you can do your own household, upload it to the [compare suppliers](https://compare.energy.vic.gov.au) site, claim your $50 (and get your parent to pay you this for your efforts), and possibly get a better deal on household energy costs.
-
-### Resources
-
-Cheat sheets are provided for:
-
-- Rmarkdown
-- Shiny
-- Plotting data
-- Wranging data
 
 ## Exercise 1: Background work
 
 Read in Di's energy data. Look at the format of the data, and then rearrange it to a tidier format.
 
-```{r fig.margin=TRUE, fig.width=3.5, fig.height=7}
+```{r readdata, fig.margin=TRUE, fig.width=3, fig.height=7, fig.fullwidth=TRUE}
 library(tidyverse)
 library(lubridate)
 library(tsibble)
@@ -79,12 +103,12 @@ library(emo)
 elec <- read_csv("data/di.csv", skip=1,
                  col_names = c("id", "date", paste0("d", 1:48), paste0("stuff", 1:5)),
                  col_types = "ccddddddddddddddddddddddddddddddddddddddddddddddddccccc")
-elec %>% head(10)
+elec %>% select(id:d5) %>% head(3)
 ```
 
 Here's the wrangling, `r set.seed(2016); emo::ji("workout")`, and new format:
 
-```{r wrangle}
+```{r wrangle, fig.margin=TRUE}
 vic_holidays <- holiday_aus(2017:2019, state = "VIC")
 elec <- elec %>% filter(id == 300)
 elec <- elec %>%
@@ -102,13 +126,13 @@ elec <- elec %>%
            minutes(60*halfhour)) %>% 
   mutate(work = ifelse(wday %in% c("Mon", "Tue", "Wed", "Thu", "Fri"), "workday", "holiday")) %>%
   mutate(work = ifelse(date %in% vic_holidays$date, "holiday", work))
-elec %>% head(15) 
+elec %>% head(3) 
 ```
 
 ## Exercise 2: Plot (some of) the data in a calendar layout
 
 
-```{r fig.margin=TRUE, fig.width=3.5, fig.height=3.5}
+```{r fig.margin=TRUE, fig.width=3.5, fig.height=3.5, echo=TRUE, tidy=TRUE}
 p1 <- elec %>%
   filter(date < dmy("01022019"), date >= dmy("01122018")) %>%
   frame_calendar(x = halfhour, y = kwh, date = date, ncol = 4) %>%
@@ -119,9 +143,9 @@ p1 <- elec %>%
 prettify(p1)
 ```
 
-## Exercise 4: Combine with weather data
+## Exercise 3: Combine with weather data
 
-```{r fig.margin=TRUE, fig.width=3.5, fig.height=4}
+```{r getweather}
 library(bomrang)
 library(viridis)
 stations <- sweep_for_stations(latlon = c(-37.8136, 144.9631)) #Melbourne lat/long is 
@@ -130,6 +154,9 @@ maxtemp <- maxtemp %>%
   mutate(date = paste(maxtemp$Year, maxtemp$Month, maxtemp$Day, sep="-")) %>%
   mutate(date = ymd(date))
 maxtemp_DF <- maxtemp %>% filter(Year > 2017, Month %in% c(12, 1)) 
+```
+
+```{r fig.margin=TRUE, fig.width=3.5, fig.height=4, echo=TRUE, tidy=TRUE}
 p1 <- elec %>%
   filter(date < dmy("01022019"), date >= dmy("01122018")) %>%
   left_join(maxtemp_DF) %>% 
@@ -141,9 +168,9 @@ p1 <- elec %>%
 prettify(p1)
 ```
 
-## Making an interactive plot
+## Exercise 4: Making an interactive plot
 
-```{r fig.width=5, fig.height=6}
+```{r fig.width=5, fig.height=6, echo=TRUE}
 library(plotly)
 calendar_df <- elec %>%
   filter(date < ymd(max(elec$date)), date >= ymd(min(elec$date))) %>%
@@ -159,23 +186,31 @@ prettify(p)
 ## Exercise 5: Your turn to code
 
 1. Easy tasks: 
-    a. XXX
-    b. XXX
-2. Medium task: 
-    a. XXX
-    b. XXX
-    c. XXX 
-3. Difficult: Make a new app to study XXX. The steps to do this are:
-    a. XXX 
-    b. XXX  
-    c. XXX
+    a. Create a test Rmarkdown document
+    b. Compile it into an html document
+2. Medium task: Create a plot to answer these questions: 
+    a. What day of the week does the household use more energy? What day of the week is there more variation in energy use?
+    b. What time of day does the household wake up? And go to sleep? Is it different on a holiday vs a working day?
+    c. Can you guess when Di's son was home from Uni? Was there a time when the family was away on holidays?
+3. Difficult: Make a new app to study energy usage. The steps to do this are:
+    a. Run the sample app, and play with changing dates
+    b. Add a numerical summary to the output  
+    c. Make a new tab with a new display, and numerical summary, something that you think is useful to track in energy usage.
 
-With your new app, XXX
+## How to win the grand prize
 
-## Turn in
+There is a prize for the team that works together the best on the lab activities. 
 
-Each group needs to provide to the instructor:
+1. Get the best score in the interactive online quiz (after lunch)
+2. Produce the most creative web app, with interesting data plots, that someone can use to explore their energy use
 
-1. A document with answers to each of the questions
-2. A copy of your app code
+## Resources
+
+Cheat sheets are provided for:
+
+- Rmarkdown
+- Shiny
+- Plotting data
+- Wranging data
+
 
