@@ -27,7 +27,7 @@ http://www.smartmeters.vic.gov.au/#
 
 Read in Di's energy data. Look at the format of the data, and then rearrange it to a tidier format.
 
-```{r readdata, fig.margin=TRUE, fig.width=3, fig.height=7, fig.fullwidth=TRUE}
+```{r readdata, fig.width=3, fig.height=7, fig.fullwidth=TRUE}
 library(tidyverse)
 library(lubridate)
 library(tsibble)
@@ -42,7 +42,7 @@ elec %>% select(id:d5) %>% head(3)
 
 Here's the wrangling, `r set.seed(2016); emo::ji("workout")`, and new format:
 
-```{r wrangle, fig.margin=TRUE}
+```{r wrangle}
 vic_holidays <- holiday_aus(2017:2019, state = "VIC")
 elec <- elec %>% filter(id == 300)
 elec <- elec %>%
@@ -66,7 +66,7 @@ elec %>% head(3)
 ## Exercise 2: Plot (some of) the data in a calendar layout
 
 
-```{r fig.margin=TRUE, fig.width=3.5, fig.height=3.5, echo=TRUE, tidy=TRUE}
+```{r fig.width=3.5, fig.height=3.5, echo=TRUE, tidy=TRUE}
 p1 <- elec %>%
   filter(date < dmy("01022019"), date >= dmy("01122018")) %>%
   frame_calendar(x = halfhour, y = kwh, date = date, ncol = 4) %>%
@@ -92,7 +92,7 @@ elec <- elec %>%
   left_join(maxtemp_DF) 
 ```
 
-```{r fig.margin=TRUE, fig.width=3.5, fig.height=4, echo=TRUE, tidy=TRUE}
+```{r fig.width=3.5, fig.height=4, echo=TRUE, tidy=TRUE}
 p1 <- elec %>%
   filter(date < dmy("01022019"), date >= dmy("01122018")) %>%
   frame_calendar(x = halfhour, y = kwh, date = date, ncol = 4) %>%
@@ -103,10 +103,9 @@ p1 <- elec %>%
 prettify(p1)
 ```
 
-\newpage
 ## Exercise 4: Make a simple plot, and add some interactivity
 
-```{r fig.margin=TRUE, fig.width=3, fig.height=3, echo=TRUE}
+```{r fig.width=3, fig.height=3, echo=TRUE}
 library(plotly)
 p <- elec %>%
   filter(year(date) == 2018) %>%
@@ -119,7 +118,7 @@ ggplotly(p)
 
 ## Exercise 6: Compare day of the week
 
-```{r fig.margin=TRUE, fig.width=4, fig.height=3, echo=TRUE}
+```{r fig.width=4, fig.height=3, echo=TRUE}
 p <- elec %>%
   filter(year(date) == 2018) %>%
   group_by(date) %>%
