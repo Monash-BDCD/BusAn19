@@ -1,0 +1,12 @@
+name: blue_energy_app
+title: blue_energy_app
+username:
+account: ebsmonash
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 732915
+bundleId: 1890925
+url: https://ebsmonash.shinyapps.io/blue_energy_app/
+when: 1550805829.82896
+asMultiple: FALSE
+asStatic: FALSE
